@@ -1,0 +1,6 @@
+{
+  "name": "Arrow Escape",
+  "description": "A relaxing tap-to-clear logic puzzle game. Plan your sequence, clear paths, and escape arrows through unlimited levels.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Arrow Escape</string>
+    <string name="tap_away_arrows">Tap Away Arrows</string>
+    <string name="find_free_path">Find the Free Path</string>
+    <string name="clear_the_board">Clear the Board</string>
+    <string name="level_completed">Level Completed!</string>
+    <string name="next_level">Next Level</string>
+    <string name="retry">Try Again</string>
+    <string name="restart">Restart</string>
+    <string name="hint">Hint</string>
+    <string name="game_over">Game Over</string>
+    <string name="time_up">Time\'s Up!</string>
+    <string name="out_of_lives">Out of Lives!</string>
+    <string name="easy">Easy</string>
+    <string name="normal">Normal</string>
+    <string name="hard">Hard</string>
+    <string name="very_hard">Very Hard</string>
+    <string name="expert">Expert</string>
+</resources>
