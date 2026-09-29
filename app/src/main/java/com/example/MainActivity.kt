@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import com.example.ui.screens.GameScreen
+import com.example.ui.screens.MainAppScreen
 import com.example.ui.theme.ArrowEscapeTheme
 import com.example.ui.viewmodel.GameViewModel
 
@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ArrowEscapeTheme {
-                GameScreen(viewModel = viewModel)
+                MainAppScreen(viewModel = viewModel)
             }
         }
     }

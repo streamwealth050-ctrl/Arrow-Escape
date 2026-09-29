@@ -10,6 +10,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -20,12 +21,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -38,26 +42,30 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.domain.model.Arrow
 import com.example.domain.model.Direction
-import com.example.domain.model.GridPoint
 import com.example.ui.theme.GoldAmber
 import com.example.ui.theme.HeartRed
+import com.example.ui.theme.SkyBlue500
 import com.example.ui.theme.SkyBlue600
+import com.example.ui.theme.Slate700
 import com.example.ui.theme.Slate800
 import com.example.ui.viewmodel.GameUiState
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Composable
 fun GameBoard(
     uiState: GameUiState,
     onArrowTapped: (Arrow) -> Unit,
+    onArrowAnimationFinished: (Arrow) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val level = uiState.currentLevel
     val gridWidth = level.gridWidth
     val gridHeight = level.gridHeight
+
+    // Store ongoing slide-out animation progress per arrow (0.0f -> 1.0f)
+    val escapeAnimMap = remember { mutableStateMapOf<Int, Animatable<Float, *>>() }
 
     // Pulsing halo animation for hinted arrow
     val infiniteTransition = rememberInfiniteTransition(label = "hint_transition")
@@ -65,24 +73,63 @@ fun GameBoard(
         initialValue = 0.85f,
         targetValue = 1.35f,
         animationSpec = infiniteRepeatable(
-            animation = tween(650, easing = FastOutSlowInEasing),
+            animation = tween(600, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "hint_pulse"
     )
 
+    // Trigger and track slide-out animations for escaping arrows
+    for (arrow in uiState.activeArrows) {
+        val isEscaping = uiState.escapingArrowIds.contains(arrow.id)
+        if (isEscaping) {
+            val animatable = remember(arrow.id) { Animatable(0f) }
+            escapeAnimMap[arrow.id] = animatable
+
+            LaunchedEffect(arrow.id) {
+                // Animate position over time using Canvas coordinate space
+                animatable.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+                )
+                // When slide-out finishes, notify ViewModel to finalize removal
+                onArrowAnimationFinished(arrow)
+                escapeAnimMap.remove(arrow.id)
+            }
+        }
+    }
+
+    // Outer puzzle table container with sophisticated wood/slate bevel and shadow
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(24.dp),
-                spotColor = Color(0x1A0F172A)
-            )
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White)
             .padding(12.dp)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(28.dp),
+                spotColor = Color(0x330F172A)
+            )
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFFFFF),
+                        Color(0xFFF8FAFC)
+                    )
+                )
+            )
+            .border(
+                width = 3.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFE2E8F0),
+                        Color(0xFFCBD5E1),
+                        Color(0xFFE2E8F0)
+                    )
+                ),
+                shape = RoundedCornerShape(28.dp)
+            )
+            .padding(14.dp)
             .testTag("game_board"),
         contentAlignment = Alignment.Center
     ) {
@@ -102,7 +149,7 @@ fun GameBoard(
                         // Find closest arrow to tapOffset
                         var bestArrow: Arrow? = null
                         var minDistance = Float.MAX_VALUE
-                        val maxHitDistance = max(cellSize * 0.6f, 48.dp.toPx())
+                        val maxHitDistance = max(cellSize * 0.65f, 48.dp.toPx())
 
                         for (arrow in uiState.activeArrows) {
                             if (uiState.escapingArrowIds.contains(arrow.id)) continue
@@ -130,14 +177,15 @@ fun GameBoard(
             val originX = (size.width - (gridWidth - 1) * cellSize) / 2f
             val originY = (size.height - (gridHeight - 1) * cellSize) / 2f
 
-            // 1. Draw subtle background dot grid
-            drawGridDots(gridWidth, gridHeight, originX, originY, cellSize)
+            // 1. Draw subtle board grid texture and precision dots
+            drawBoardBackground(gridWidth, gridHeight, originX, originY, cellSize)
 
-            // 2. Draw active arrows
+            // 2. Draw all arrows with real-time Canvas coordinate slide-out updates
             for (arrow in uiState.activeArrows) {
                 val isEscaping = uiState.escapingArrowIds.contains(arrow.id)
                 val isBlocked = uiState.blockedArrowIds.contains(arrow.id)
                 val isHinted = uiState.hintedArrowId == arrow.id
+                val progress = escapeAnimMap[arrow.id]?.value ?: if (isEscaping) 1f else 0f
 
                 drawSingleArrow(
                     arrow = arrow,
@@ -145,6 +193,7 @@ fun GameBoard(
                     originY = originY,
                     cellSize = cellSize,
                     isEscaping = isEscaping,
+                    escapeProgress = progress,
                     isBlocked = isBlocked,
                     isHinted = isHinted,
                     hintPulse = hintPulse
@@ -155,9 +204,9 @@ fun GameBoard(
 }
 
 /**
- * Draws the faint circular dots at grid intersections.
+ * Draws the board grid pattern with soft guide dots and outer boundary cues.
  */
-private fun DrawScope.drawGridDots(
+private fun DrawScope.drawBoardBackground(
     gridWidth: Int,
     gridHeight: Int,
     originX: Float,
@@ -167,6 +216,20 @@ private fun DrawScope.drawGridDots(
     val dotColor = Color(0xFFCBD5E1)
     val dotRadius = 3.dp.toPx()
 
+    // Light board grid boundary frame
+    val boardLeft = originX - cellSize * 0.4f
+    val boardTop = originY - cellSize * 0.4f
+    val boardRight = originX + (gridWidth - 1) * cellSize + cellSize * 0.4f
+    val boardBottom = originY + (gridHeight - 1) * cellSize + cellSize * 0.4f
+
+    drawRoundRect(
+        color = Color(0xFFF1F5F9).copy(alpha = 0.5f),
+        topLeft = Offset(boardLeft, boardTop),
+        size = Size(boardRight - boardLeft, boardBottom - boardTop),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx())
+    )
+
+    // Dots at grid intersections
     for (x in 0 until gridWidth) {
         for (y in 0 until gridHeight) {
             val px = originX + x * cellSize
@@ -181,7 +244,8 @@ private fun DrawScope.drawGridDots(
 }
 
 /**
- * Draws a single arrow polyline path and its directional arrowhead.
+ * Draws an arrow and updates its position over time in the Canvas coordinate system
+ * as it slides out of the board upon being cleared.
  */
 private fun DrawScope.drawSingleArrow(
     arrow: Arrow,
@@ -189,6 +253,7 @@ private fun DrawScope.drawSingleArrow(
     originY: Float,
     cellSize: Float,
     isEscaping: Boolean,
+    escapeProgress: Float,
     isBlocked: Boolean,
     isHinted: Boolean,
     hintPulse: Float
@@ -201,26 +266,45 @@ private fun DrawScope.drawSingleArrow(
         else -> Slate800
     }
 
-    // Offset adjustments for animations
+    // Dynamic position offset updated over time in Canvas coordinate system
     var animOffsetX = 0f
     var animOffsetY = 0f
     var alpha = 1f
 
     if (isEscaping) {
-        // Slide out along direction
-        val escapeDistance = cellSize * 3.5f
-        animOffsetX = arrow.direction.dx * escapeDistance
-        animOffsetY = arrow.direction.dy * escapeDistance
-        alpha = 0.85f
+        // Compute total travel distance to clear completely beyond Canvas borders
+        val totalTravelDistance = max(size.width, size.height) * 1.35f
+        animOffsetX = arrow.direction.dx * (totalTravelDistance * escapeProgress)
+        animOffsetY = arrow.direction.dy * (totalTravelDistance * escapeProgress)
+        alpha = (1f - escapeProgress * 0.85f).coerceIn(0f, 1f)
+
+        // Draw dynamic speed trail behind escaping arrow in Canvas coordinates
+        if (escapeProgress > 0.05f) {
+            val trailLength = cellSize * 2.2f * (1f - escapeProgress)
+            val tailPt = arrow.points.first()
+            val tailPx = originX + tailPt.x * cellSize + animOffsetX
+            val tailPy = originY + tailPt.y * cellSize + animOffsetY
+            val trailStart = Offset(
+                tailPx - arrow.direction.dx * trailLength,
+                tailPy - arrow.direction.dy * trailLength
+            )
+            drawLine(
+                color = SkyBlue500.copy(alpha = 0.45f * (1f - escapeProgress)),
+                start = trailStart,
+                end = Offset(tailPx, tailPy),
+                strokeWidth = strokeWidth * 0.7f,
+                cap = StrokeCap.Round
+            )
+        }
     } else if (isBlocked) {
-        // Shake back and forth along perpendicular axis
+        // Shake oscillation perpendicular to direction
         val shakeAmount = cellSize * 0.14f
         animOffsetX = -arrow.direction.dy * shakeAmount
         animOffsetY = arrow.direction.dx * shakeAmount
     }
 
-    // If hinted, draw a radiant pulsing glow behind the arrow
-    if (isHinted) {
+    // Hint aura glow
+    if (isHinted && !isEscaping) {
         val glowPath = Path()
         arrow.points.forEachIndexed { index, pt ->
             val px = originX + pt.x * cellSize + animOffsetX
@@ -231,14 +315,14 @@ private fun DrawScope.drawSingleArrow(
             path = glowPath,
             color = GoldAmber.copy(alpha = 0.35f),
             style = Stroke(
-                width = strokeWidth * 2.2f * hintPulse,
+                width = strokeWidth * 2.3f * hintPulse,
                 cap = StrokeCap.Round,
                 join = StrokeJoin.Round
             )
         )
     }
 
-    // Main arrow stroke
+    // Main arrow path in Canvas coordinate system
     val path = Path()
     val pixelPoints = arrow.points.map { pt ->
         Offset(
@@ -261,7 +345,7 @@ private fun DrawScope.drawSingleArrow(
         )
     )
 
-    // Draw the arrowhead at the tip
+    // Triangular arrowhead at the tip
     val tip = pixelPoints.last()
     drawArrowHead(
         tip = tip,
@@ -272,7 +356,7 @@ private fun DrawScope.drawSingleArrow(
 }
 
 /**
- * Draws a sharp, clean triangular arrowhead at [tip] pointing in [direction].
+ * Draws a clean, geometric arrowhead at [tip] pointing in [direction].
  */
 private fun DrawScope.drawArrowHead(
     tip: Offset,
@@ -280,19 +364,17 @@ private fun DrawScope.drawArrowHead(
     cellSize: Float,
     color: Color
 ) {
-    val headLength = cellSize * 0.36f
-    val headHalfWidth = cellSize * 0.22f
+    val headLength = cellSize * 0.38f
+    val headHalfWidth = cellSize * 0.23f
 
     val dirX = direction.dx.toFloat()
     val dirY = direction.dy.toFloat()
     val perpX = -dirY
     val perpY = dirX
 
-    // Base center of arrowhead
     val baseCenterX = tip.x - dirX * headLength
     val baseCenterY = tip.y - dirY * headLength
 
-    // Left and right corners of the triangle base
     val leftCorner = Offset(
         baseCenterX + perpX * headHalfWidth,
         baseCenterY + perpY * headHalfWidth
@@ -303,7 +385,7 @@ private fun DrawScope.drawArrowHead(
     )
 
     val headPath = Path().apply {
-        moveTo(tip.x + dirX * (cellSize * 0.04f), tip.y + dirY * (cellSize * 0.04f))
+        moveTo(tip.x + dirX * (cellSize * 0.05f), tip.y + dirY * (cellSize * 0.05f))
         lineTo(leftCorner.x, leftCorner.y)
         lineTo(baseCenterX + dirX * (headLength * 0.18f), baseCenterY + dirY * (headLength * 0.18f))
         lineTo(rightCorner.x, rightCorner.y)
@@ -313,9 +395,6 @@ private fun DrawScope.drawArrowHead(
     drawPath(path = headPath, color = color, style = Fill)
 }
 
-/**
- * Calculates the shortest distance from tap point [p] to any segment of [arrow].
- */
 private fun calculateDistanceToArrow(
     p: Offset,
     arrow: Arrow,

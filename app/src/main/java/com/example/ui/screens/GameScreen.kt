@@ -65,7 +65,7 @@ fun GameScreen(
                 // 1. Top Header: Title, Hearts, Remaining count, Timer
                 GameHeader(
                     uiState = uiState,
-                    onBackOrSelectClick = { viewModel.openLevelSelect(true) },
+                    onBackOrSelectClick = { viewModel.navigateTo(com.example.ui.viewmodel.AppScreen.HOME) },
                     onSettingsClick = { viewModel.openSettings(true) }
                 )
 
@@ -80,6 +80,9 @@ fun GameScreen(
                         uiState = uiState,
                         onArrowTapped = { arrow ->
                             viewModel.onArrowTapped(arrow)
+                        },
+                        onArrowAnimationFinished = { arrow ->
+                            viewModel.onArrowAnimationFinished(arrow)
                         },
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
