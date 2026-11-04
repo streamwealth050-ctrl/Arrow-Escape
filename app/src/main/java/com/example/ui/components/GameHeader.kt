@@ -78,7 +78,7 @@ fun GameHeader(
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Level ${uiState.currentLevel.levelNumber}",
+                    text = if (uiState.isDailyChallenge) "Daily Challenge" else "Level ${uiState.campaignLevelNumber}",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = Slate800,

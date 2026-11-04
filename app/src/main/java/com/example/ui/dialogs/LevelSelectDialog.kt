@@ -53,7 +53,7 @@ fun LevelSelectDialog(
     onDismiss: () -> Unit
 ) {
     val progressMap = progressList.associateBy { it.levelNumber }
-    val totalDisplayLevels = maxOf(30, maxUnlockedLevel + 5)
+    val totalDisplayLevels = maxOf(50, maxUnlockedLevel + 5)
 
     Dialog(onDismissRequest = onDismiss) {
         Card(

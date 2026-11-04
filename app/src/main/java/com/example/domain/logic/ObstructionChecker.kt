@@ -3,21 +3,21 @@ package com.example.domain.logic
 import com.example.domain.model.Arrow
 import com.example.domain.model.Direction
 import com.example.domain.model.GridPoint
+import com.example.domain.model.ShapeType
 
 object ObstructionChecker {
 
     /**
-     * Checks if the path in front of [arrow] is clear to the edge of the board.
-     * An arrow is free if no other arrow occupies any point on the ray starting
-     * from arrow.tip + arrow.direction up to the board boundaries.
+     * Checks if the path in front of [arrow] is clear to the edge of the board or shape boundary.
      */
     fun isArrowFree(
         arrow: Arrow,
         activeArrows: List<Arrow>,
         gridWidth: Int,
-        gridHeight: Int
+        gridHeight: Int,
+        shapeType: ShapeType = ShapeType.RECTANGLE
     ): Boolean {
-        return findFirstBlockingArrow(arrow, activeArrows, gridWidth, gridHeight) == null
+        return findFirstBlockingArrow(arrow, activeArrows, gridWidth, gridHeight, shapeType) == null
     }
 
     /**
@@ -27,7 +27,8 @@ object ObstructionChecker {
         arrow: Arrow,
         activeArrows: List<Arrow>,
         gridWidth: Int,
-        gridHeight: Int
+        gridHeight: Int,
+        shapeType: ShapeType = ShapeType.RECTANGLE
     ): Arrow? {
         val dir = arrow.direction
         var cur = arrow.tip + dir
@@ -36,7 +37,9 @@ object ObstructionChecker {
         if (otherArrows.isEmpty()) return null
 
         while (isInsideBoard(cur, gridWidth, gridHeight)) {
-            // Check if any other arrow occupies this point
+            if (arrow.coveredGridPoints.contains(cur)) {
+                return arrow
+            }
             for (other in otherArrows) {
                 if (other.coveredGridPoints.contains(cur)) {
                     return other
@@ -54,10 +57,11 @@ object ObstructionChecker {
     fun getFreeArrows(
         activeArrows: List<Arrow>,
         gridWidth: Int,
-        gridHeight: Int
+        gridHeight: Int,
+        shapeType: ShapeType = ShapeType.RECTANGLE
     ): List<Arrow> {
         return activeArrows.filter { arrow ->
-            isArrowFree(arrow, activeArrows, gridWidth, gridHeight)
+            isArrowFree(arrow, activeArrows, gridWidth, gridHeight, shapeType)
         }
     }
 

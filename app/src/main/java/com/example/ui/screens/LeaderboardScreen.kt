@@ -166,20 +166,28 @@ fun LeaderboardScreen(
                             )
                         }
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Stars",
-                                tint = GoldAmber,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
+                        Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "${item.stars}",
+                                text = "${item.points} pts",
                                 fontWeight = FontWeight.Bold,
-                                color = Slate800,
+                                color = if (isMe) SkyBlue600 else Slate800,
                                 fontSize = 14.sp
                             )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Stars",
+                                    tint = GoldAmber,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(
+                                    text = "${item.stars}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Slate700,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -249,6 +257,12 @@ private fun PodiumColumn(
                     fontWeight = FontWeight.ExtraBold,
                     color = color,
                     fontSize = 20.sp
+                )
+                Text(
+                    text = "${entry.points} pts",
+                    fontWeight = FontWeight.Bold,
+                    color = Slate800,
+                    fontSize = 11.sp
                 )
                 Text(
                     text = "${entry.stars} ⭐",

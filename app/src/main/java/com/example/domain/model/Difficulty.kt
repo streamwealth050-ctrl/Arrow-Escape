@@ -12,19 +12,22 @@ enum class Difficulty(
     val badgeColor: Color,
     val timeLimitSec: Int
 ) {
-    EASY("Easy", SuccessGreen, 75),
-    NORMAL("Normal", SkyBlue600, 60),
-    HARD("Hard", GoldAmber, 50),
-    VERY_HARD("Very Hard", HeartRed, 45),
-    EXPERT("Expert", PurpleExpert, 40);
+    EASY("Easy", SuccessGreen, 120),
+    MEDIUM("Medium", SkyBlue600, 160),
+    HARD("Hard", GoldAmber, 220),
+    VERY_HARD("Very Hard", HeartRed, 280),
+    EXPERT("Expert", PurpleExpert, 360);
 
     companion object {
+        // Backwards compatibility alias
+        val NORMAL: Difficulty get() = MEDIUM
+
         fun forLevel(level: Int): Difficulty {
             return when {
-                level <= 10 -> EASY
-                level <= 25 -> NORMAL
-                level <= 50 -> HARD
-                level <= 100 -> VERY_HARD
+                level <= 5 -> EASY
+                level <= 10 -> MEDIUM
+                level <= 20 -> HARD
+                level <= 35 -> VERY_HARD
                 else -> EXPERT
             }
         }

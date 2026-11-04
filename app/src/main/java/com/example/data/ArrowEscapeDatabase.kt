@@ -5,11 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.data.dao.LevelProgressDao
+import com.example.data.dao.UserGameStateDao
 import com.example.data.model.LevelProgressEntity
+import com.example.data.model.UserGameStateEntity
 
-@Database(entities = [LevelProgressEntity::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        LevelProgressEntity::class,
+        UserGameStateEntity::class
+    ],
+    version = 2,
+    exportSchema = false
+)
 abstract class ArrowEscapeDatabase : RoomDatabase() {
     abstract fun levelProgressDao(): LevelProgressDao
+    abstract fun userGameStateDao(): UserGameStateDao
 
     companion object {
         @Volatile

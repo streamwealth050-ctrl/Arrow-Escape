@@ -1,0 +1,64 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rounded card background (squircle shape with 24 radius) -->
+    <path
+        android:pathData="M24,0 L84,0 A24,24 0 0,1 108,24 L108,84 A24,24 0 0,1 84,108 L24,108 A24,24 0 0,1 0,84 L0,24 A24,24 0 0,1 24,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="12"
+                android:startY="12"
+                android:endX="96"
+                android:endY="96"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#1E293B" />
+                <item android:offset="1.0" android:color="#0F172A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Subtle board grid dots -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M24,24m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M54,24m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M84,24m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M24,54m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M54,54m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M84,54m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M24,84m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M54,84m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0 M84,84m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+
+    <!-- Path 1: Cyan arrow turning right and escaping -->
+    <path
+        android:pathData="M34,68 L34,44 L66,44"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Arrowhead 1: pointing Right -->
+    <path
+        android:pathData="M64,36 L76,44 L64,52 Z"
+        android:fillColor="#38BDF8" />
+
+    <!-- Path 2: White arrow turning up -->
+    <path
+        android:pathData="M48,74 L48,34"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Arrowhead 2: pointing Up -->
+    <path
+        android:pathData="M40,36 L48,23 L56,36 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Path 3: White arrow pointing left -->
+    <path
+        android:pathData="M74,68 L44,68"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Arrowhead 3: pointing Left -->
+    <path
+        android:pathData="M46,59 L33,68 L46,77 Z"
+        android:fillColor="#FFFFFF" />
+</vector>

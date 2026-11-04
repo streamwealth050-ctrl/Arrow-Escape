@@ -21,6 +21,12 @@ interface LevelProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveProgress(progress: LevelProgressEntity)
 
+    @Query("SELECT * FROM level_progress WHERE levelNumber < 1000 ORDER BY levelNumber ASC")
+    suspend fun getRegularProgressSync(): List<LevelProgressEntity>
+
+    @Query("DELETE FROM level_progress WHERE levelNumber >= 1000")
+    suspend fun deleteCorruptedDailyLevels()
+
     @Query("DELETE FROM level_progress")
     suspend fun clearAllProgress()
 }

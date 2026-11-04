@@ -36,6 +36,7 @@ data class LeaderboardEntry(
     val name: String,
     val levelsCleared: Int,
     val stars: Int,
+    val points: Int = 0,
     val avatarEmoji: String,
     val isCurrentUser: Boolean = false
 )
